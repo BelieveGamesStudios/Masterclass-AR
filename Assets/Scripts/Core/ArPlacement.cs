@@ -25,8 +25,6 @@ namespace Imisi3D
         private static List<ARRaycastHit> hits;
         private Transform objectParent;
 
-        private bool isTouching = false;
-
         [Header("Object Transformation"),Range(0.5f,20f)]
         [SerializeField] private float smoothTime = 10;
 
@@ -61,14 +59,15 @@ namespace Imisi3D
         }
         void GetTouch()
         {
+            if (Input.activeTouches.Count <= 0) return;
             Input t = Input.activeTouches[0];
+            print(t.delta);
             touchPosition = t.screenPosition;
             switch (t.phase)
             {
                 case UnityEngine.InputSystem.TouchPhase.None:
                     break;
                 case UnityEngine.InputSystem.TouchPhase.Began:
-                    isTouching = true;
                     Ray ray = mainCam.ScreenPointToRay(touchPosition);
                     if (Physics.Raycast(ray, out RaycastHit hitInfo))
                     {
@@ -79,13 +78,17 @@ namespace Imisi3D
                         }
                     }
 
-                    if (!objectToPlace)
+                    if (objectToPlace)
                     {
-                        GameObject newObj = Instantiate(selectedObject, TouchPose().position, TouchPose().rotation, objectParent);
-                        newObj.TryGetComponent<>
+                        GameObject newObj = Instantiate(objectToPlace, TouchPose().position, TouchPose().rotation, objectParent);
+                        newObj.TryGetComponent<Collider>(out Collider placedObjectCol);
+                        if(!placedObjectCol)
+                            newObj.AddComponent<BoxCollider>();
                         placedObjects.Add(newObj);
+                        return;
                     }
 
+                    selectedObject = null;
                     break;
                 case UnityEngine.InputSystem.TouchPhase.Moved:
                     if (selectedObject)
@@ -94,16 +97,7 @@ namespace Imisi3D
                         selectedObject.transform.position = smoothPos;
                     }
                     break;
-                case UnityEngine.InputSystem.TouchPhase.Ended:
-                    isTouching = false;
-                    break;
-                case UnityEngine.InputSystem.TouchPhase.Canceled:
-                    isTouching = false;
-                    break;
-                case UnityEngine.InputSystem.TouchPhase.Stationary:
-                    break;
-                default:
-                    break;
+
             }
         }
         public void SetObjectToPlace(GameObject newObject)
