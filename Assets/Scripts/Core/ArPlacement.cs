@@ -32,7 +32,7 @@ namespace Imisi3D
 
         [SerializeField, Range(0.5f, 20f)] private float smoothTime = 10;
 
-        [SerializeField, Range(0.05f, 3f)] private float scaleIncrease = 1;
+        [SerializeField, Range(0.05f, 3f)] private float scaleIncrease = 0.5f;
 
         [SerializeField, Range(0.05f, 1f)] private float minimumObjectSize = 1;
 
@@ -74,6 +74,7 @@ namespace Imisi3D
             else
             {
                 previousDistance = 0;
+                previousAngle = 0;
             }
         }
         void GetSingleTouch()
@@ -125,41 +126,38 @@ namespace Imisi3D
             Touch firstTouch = Touch.activeTouches[0];
             Touch secondTouch = Touch.activeTouches[1];
 
-            float currentDistance = Vector2.Distance(firstTouch.screenPosition, secondTouch.screenPosition); //Here you can also get the magnitude instead
+            float currentDistance = (firstTouch.screenPosition - secondTouch.screenPosition).magnitude; //Here you can also get the magnitude instead
 
             float pinchDelta = currentDistance - previousDistance;
-            if (pinchDelta > 0.0f)
+            if (pinchDelta != 0.0f)
             {
                 OnPinch(pinchDelta);
             }
             previousDistance = currentDistance;
 
-            float currentAngle = Mathf.Atan2(
-                firstTouch.screenPosition.y - secondTouch.screenPosition.y, 
-                firstTouch.screenPosition.x - secondTouch.screenPosition.x)
-                * Mathf.Rad2Deg;
+            //float currentAngle = Mathf.Atan2(
+            // firstTouch.screenPosition.y - secondTouch.screenPosition.y,
+            // firstTouch.screenPosition.x - secondTouch.screenPosition.x)
+            //* Mathf.Rad2Deg;
 
-            if(previousAngle != 0)
-            {
-                float deltaAngle = Mathf.DeltaAngle(previousAngle, currentAngle);
-                OnTwist(deltaAngle);
-            }
+            //if (previousAngle != 0)
+            //{
+            //    float deltaAngle = Mathf.DeltaAngle(previousAngle, currentAngle);
+            //    OnTwist(deltaAngle);
+            //}
+
+            //previousAngle = currentAngle;
         }
         void OnPinch(float p)
         {
-            Vector3 newScale = selectedObject.transform.localScale += new Vector3(
-                scaleIncrease,
-                scaleIncrease,
-                scaleIncrease
-                );
-            newScale.x = Mathf.Clamp(newScale.x, minimumObjectSize, maximumObjectSize);
-            newScale.y = Mathf.Clamp(newScale.y, minimumObjectSize, maximumObjectSize);
-            newScale.z = Mathf.Clamp(newScale.z, minimumObjectSize, maximumObjectSize);
-            selectedObject.transform.localScale = Vector3.Slerp(selectedObject.transform.localScale, newScale, smoothTime / 3 * Time.deltaTime);
+            float sizeDelta = selectedObject.transform.localScale.x + (p * scaleIncrease);
+            sizeDelta = Mathf.Clamp(sizeDelta, minimumObjectSize, maximumObjectSize);
+            Vector3 newScale = new Vector3(sizeDelta, sizeDelta, sizeDelta);
+            selectedObject.transform.localScale = Vector3.Slerp(selectedObject.transform.localScale, newScale, smoothTime / 2 * Time.deltaTime);
         }
         void OnTwist(float td)
         {
-            selectedObject.transform.Rotate(Vector3.up* td * smoothTime*Time.deltaTime);
+            selectedObject.transform.Rotate(Vector3.up * td * smoothTime * Time.deltaTime);
         }
         public void SetObjectToPlace(GameObject newObject)
         {
