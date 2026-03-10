@@ -1,9 +1,10 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.InputSystem.EnhancedTouch;
 using UnityEngine.XR.ARFoundation;
 using UnityEngine.XR.ARSubsystems;
-using Input = UnityEngine.InputSystem.EnhancedTouch.Touch;
+using Touch = UnityEngine.InputSystem.EnhancedTouch.Touch;
 
 namespace Imisi3D
 {
@@ -18,15 +19,28 @@ namespace Imisi3D
         private Camera mainCam;
 
         [Header("Object management")]
-        private Vector2 touchPosition;
         private GameObject objectToPlace;
         private GameObject selectedObject;
-        private List<GameObject> placedObjects;
-        private static List<ARRaycastHit> hits;
         private Transform objectParent;
 
-        [Header("Object Transformation"),Range(0.5f,20f)]
-        [SerializeField] private float smoothTime = 10;
+
+        private List<GameObject> placedObjects;
+        private static List<ARRaycastHit> hits = new List<ARRaycastHit>();
+        private List<RaycastResult> raycastResult = new();
+
+        [Header("Object Transformation")]
+
+        [SerializeField, Range(0.5f, 20f)] private float smoothTime = 10;
+
+        [SerializeField, Range(0.05f, 3f)] private float scaleIncrease = 1;
+
+        [SerializeField, Range(0.05f, 1f)] private float minimumObjectSize = 1;
+
+        [SerializeField, Range(1, 5f)] private float maximumObjectSize = 5;
+
+        private Vector2 touchPosition;
+        private float previousDistance;
+        private float previousAngle;
 
         private void Awake()
         {
@@ -40,10 +54,8 @@ namespace Imisi3D
             mainCam = Camera.main;
             placedObjects = new List<GameObject>();
             objectParent = new GameObject("Object Container").transform;
-        }
-        private void OnEnable()
-        {
             EnhancedTouchSupport.Enable();
+            TouchSimulation.Enable();
         }
         private void OnDisable()
         {
@@ -55,18 +67,22 @@ namespace Imisi3D
         }
         private void Update()
         {
-            GetTouch();
+            if (Touch.activeFingers.Count == 1)
+                GetSingleTouch();
+            else if (Touch.activeFingers.Count == 2)
+                GetMultiTouch();
+            else
+            {
+                previousDistance = 0;
+            }
         }
-        void GetTouch()
+        void GetSingleTouch()
         {
-            if (Input.activeTouches.Count <= 0) return;
-            Input t = Input.activeTouches[0];
-            print(t.delta);
+            Touch t = Touch.activeTouches[0];
             touchPosition = t.screenPosition;
+            if (isOverUI(touchPosition)) return;
             switch (t.phase)
             {
-                case UnityEngine.InputSystem.TouchPhase.None:
-                    break;
                 case UnityEngine.InputSystem.TouchPhase.Began:
                     Ray ray = mainCam.ScreenPointToRay(touchPosition);
                     if (Physics.Raycast(ray, out RaycastHit hitInfo))
@@ -82,9 +98,11 @@ namespace Imisi3D
                     {
                         GameObject newObj = Instantiate(objectToPlace, TouchPose().position, TouchPose().rotation, objectParent);
                         newObj.TryGetComponent<Collider>(out Collider placedObjectCol);
-                        if(!placedObjectCol)
+                        if (!placedObjectCol)
                             newObj.AddComponent<BoxCollider>();
                         placedObjects.Add(newObj);
+                        selectedObject = newObj;
+                        objectToPlace = null;
                         return;
                     }
 
@@ -100,6 +118,49 @@ namespace Imisi3D
 
             }
         }
+        void GetMultiTouch()
+        {
+            if (selectedObject == null) return;
+
+            Touch firstTouch = Touch.activeTouches[0];
+            Touch secondTouch = Touch.activeTouches[1];
+
+            float currentDistance = Vector2.Distance(firstTouch.screenPosition, secondTouch.screenPosition); //Here you can also get the magnitude instead
+
+            float pinchDelta = currentDistance - previousDistance;
+            if (pinchDelta > 0.0f)
+            {
+                OnPinch(pinchDelta);
+            }
+            previousDistance = currentDistance;
+
+            float currentAngle = Mathf.Atan2(
+                firstTouch.screenPosition.y - secondTouch.screenPosition.y, 
+                firstTouch.screenPosition.x - secondTouch.screenPosition.x)
+                * Mathf.Rad2Deg;
+
+            if(previousAngle != 0)
+            {
+                float deltaAngle = Mathf.DeltaAngle(previousAngle, currentAngle);
+                OnTwist(deltaAngle);
+            }
+        }
+        void OnPinch(float p)
+        {
+            Vector3 newScale = selectedObject.transform.localScale += new Vector3(
+                scaleIncrease,
+                scaleIncrease,
+                scaleIncrease
+                );
+            newScale.x = Mathf.Clamp(newScale.x, minimumObjectSize, maximumObjectSize);
+            newScale.y = Mathf.Clamp(newScale.y, minimumObjectSize, maximumObjectSize);
+            newScale.z = Mathf.Clamp(newScale.z, minimumObjectSize, maximumObjectSize);
+            selectedObject.transform.localScale = Vector3.Slerp(selectedObject.transform.localScale, newScale, smoothTime / 3 * Time.deltaTime);
+        }
+        void OnTwist(float td)
+        {
+            selectedObject.transform.Rotate(Vector3.up* td * smoothTime*Time.deltaTime);
+        }
         public void SetObjectToPlace(GameObject newObject)
         {
             objectToPlace = newObject;
@@ -113,6 +174,27 @@ namespace Imisi3D
                 return pose;
             }
             return new Pose();
+        }
+        bool isOverUI(Vector2 screenPos)
+        {
+            PointerEventData eventData = new PointerEventData(EventSystem.current);
+            eventData.position = touchPosition;
+            raycastResult = new List<RaycastResult>();
+            EventSystem.current.RaycastAll(eventData, raycastResult);
+            if (raycastResult.Count > 0)
+            {
+                foreach (var uiItem in raycastResult)
+                {
+                    Canvas c = uiItem.gameObject.GetComponentInParent<Canvas>();
+                    if (c.renderMode == RenderMode.ScreenSpaceOverlay || c.renderMode == RenderMode.ScreenSpaceCamera)
+                    {
+                        print("true");
+                        return true;
+                    }
+                }
+            }
+            print("False");
+            return false;
         }
     }
 }

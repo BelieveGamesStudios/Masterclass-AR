@@ -335,7 +335,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.64705884, g: 0.227451, b: 0.882353, a: 0.08627451}
+  m_Color: {r: 0.64705884, g: 0.227451, b: 0.882353, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -616,6 +616,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   smoothTime: 10
+  scaleIncrease: 0.55
+  minimumObjectSize: 1
+  maximumObjectSize: 5
 --- !u!114 &586707616
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -632,7 +635,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_PlanePrefab: {fileID: 1147024522625898456, guid: b59382cb733931346b75140263281503, type: 3}
-  m_DetectionMode: -1
+  m_DetectionMode: 1
 --- !u!114 &586707617
 MonoBehaviour:
   m_ObjectHideFlags: 0
