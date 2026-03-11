@@ -184,6 +184,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3479472673636127568}
+  - component: {fileID: 4875552269324075147}
   m_Layer: 0
   m_Name: Drawer01
   m_TagString: Untagged
@@ -207,6 +208,27 @@ Transform:
   - {fileID: 2827335606231221319}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &4875552269324075147
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3938706445630382354}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.19, y: 1.47, z: 1.64}
+  m_Center: {x: 0, y: 0.74, z: 0}
 --- !u!1 &5928070158521913319
 GameObject:
   m_ObjectHideFlags: 0
