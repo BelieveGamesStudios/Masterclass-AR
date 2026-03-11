@@ -11,12 +11,9 @@ public class ArLightAdjuster : MonoBehaviour
     {
         cameraManager = GetComponent<ARCameraManager>();
         mainLight = FindFirstObjectByType<Light>();
-    }
-    private void OnEnable()
-    {
         cameraManager.frameReceived += CameraManager_frameReceived;
     }
-
+  
     private void CameraManager_frameReceived(ARCameraFrameEventArgs obj)
     {
         var lightInfo = obj.lightEstimation.averageBrightness;
