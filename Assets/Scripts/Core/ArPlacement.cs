@@ -127,40 +127,40 @@ namespace Imisi3D
             }
         }
         void GetMultiTouch()
-        {
-            if (selectedObject == null) return;
+{
+    if (selectedObject == null) return;
 
-            Touch firstTouch = Touch.activeTouches[0];
-            Touch secondTouch = Touch.activeTouches[1];
+    Touch firstTouch = Touch.activeTouches[0];
+    Touch secondTouch = Touch.activeTouches[1];
 
-            float currentDistance = (firstTouch.screenPosition - secondTouch.screenPosition).magnitude; //Here you can also get the magnitude instead
+    float currentDistance = (firstTouch.screenPosition - secondTouch.screenPosition).magnitude;
 
-            if (firstTouch.began || secondTouch.began)
-                previousDistance = currentDistance;
+    if (firstTouch.began || secondTouch.began)
+        previousDistance = currentDistance;
 
-            float pinchDelta = currentDistance - previousDistance;
-            if (pinchDelta != 0.0f && Mathf.Abs(pinchDelta) >= 4)
-            {
-                OnPinch(pinchDelta);
-            }
-            previousDistance = currentDistance;
+    float pinchDelta = currentDistance - previousDistance;
+    if (pinchDelta != 0.0f && Mathf.Abs(pinchDelta) >= 4)
+    {
+        OnPinch(pinchDelta);
+    }
+    previousDistance = currentDistance;
 
-            if (firstTouch.began)
-                touch1Position = firstTouch.screenPosition;
-            if (secondTouch.began)
-                touch2Position = secondTouch.screenPosition;
+    if (firstTouch.began)
+        touch1Position = firstTouch.screenPosition;
+    if (secondTouch.began)
+        touch2Position = secondTouch.screenPosition;
 
-            float firstDisplacement = Vector2.Distance(touch1Position, firstTouch.screenPosition);
-            float secondDisplacement = Vector2.Distance(touch2Position, secondTouch.screenPosition);
+    // Use signed horizontal delta instead of unsigned distance
+    float firstDelta = firstTouch.screenPosition.x - touch1Position.x;
+    float secondDelta = secondTouch.screenPosition.x - touch2Position.x;
 
-            float avgDisplacement = (firstDisplacement + secondDisplacement) / 2;
-            if (Mathf.Abs(avgDisplacement) >= 2)
-                selectedObject.transform.Rotate(Vector3.up * avgDisplacement * Time.deltaTime * rotationSpeed);
+    float avgDisplacement = (firstDelta + secondDelta) / 2;
+    if (Mathf.Abs(avgDisplacement) >= 2)
+        selectedObject.transform.Rotate(Vector3.up * avgDisplacement * Time.deltaTime * rotationSpeed);
 
-
-            touch1Position = firstTouch.screenPosition;
-            touch2Position = secondTouch.screenPosition;
-        }
+    touch1Position = firstTouch.screenPosition;
+    touch2Position = secondTouch.screenPosition;
+}
         void OnPinch(float p)
         {
             float sizeDelta = selectedObject.transform.localScale.x + (p * scaleIncrease);
