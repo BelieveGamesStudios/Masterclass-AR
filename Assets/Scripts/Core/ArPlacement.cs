@@ -139,7 +139,7 @@ namespace Imisi3D
                 previousDistance = currentDistance;
 
             float pinchDelta = currentDistance - previousDistance;
-            if (pinchDelta != 0.0f && Mathf.Abs(pinchDelta) >= 1)
+            if (pinchDelta != 0.0f && Mathf.Abs(pinchDelta) >= 4)
             {
                 OnPinch(pinchDelta);
             }
@@ -154,7 +154,7 @@ namespace Imisi3D
             float secondDisplacement = Vector2.Distance(touch2Position, secondTouch.screenPosition);
 
             float avgDisplacement = (firstDisplacement + secondDisplacement) / 2;
-            if (Mathf.Abs(avgDisplacement) >= 1)
+            if (Mathf.Abs(avgDisplacement) >= 2)
                 selectedObject.transform.Rotate(Vector3.up * avgDisplacement * Time.deltaTime * rotationSpeed);
 
 
@@ -215,6 +215,11 @@ namespace Imisi3D
                 item.enabled = show;
             }
             planeManager.enabled = show;
+        }
+        public void SetMaterial(Material material)
+        {
+            if (!selectedObject) return;
+           //soon
         }
     }
 }
