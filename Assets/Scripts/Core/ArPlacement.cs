@@ -38,10 +38,13 @@ namespace Imisi3D
 
         [SerializeField, Range(1, 5f)] private float maximumObjectSize = 5;
 
-        private Vector2 touchPosition;
+        [SerializeField, Range(0.01f, 5f)] private float rotationSpeed = 5;
+
         private float previousDistance;
-        private bool scaling = false;
-        private bool rotating = false;
+        private Vector2 touchPosition;
+        private Vector3 touch1Position;
+        private Vector3 touch2Position;
+        private bool isDeleting = false;
         private void Awake()
         {
             Instance = Instance ?? this;
@@ -74,7 +77,6 @@ namespace Imisi3D
             else
             {
                 previousDistance = 0;
-                previousAngle = 0;
             }
         }
         void GetSingleTouch()
@@ -91,6 +93,11 @@ namespace Imisi3D
                         if (placedObjects.Contains(hitInfo.collider.gameObject))
                         {
                             selectedObject = hitInfo.collider.gameObject;
+                            if(isDeleting)
+                            {
+                                placedObjects.Remove(selectedObject);
+                                Destroy(selectedObject);
+                            }
                             return;
                         }
                     }
@@ -128,13 +135,31 @@ namespace Imisi3D
 
             float currentDistance = (firstTouch.screenPosition - secondTouch.screenPosition).magnitude; //Here you can also get the magnitude instead
 
+            if (firstTouch.began || secondTouch.began)
+                previousDistance = currentDistance;
+
             float pinchDelta = currentDistance - previousDistance;
-            if (pinchDelta != 0.0f)
+            if (pinchDelta != 0.0f && Mathf.Abs(pinchDelta) >= 1)
             {
                 OnPinch(pinchDelta);
             }
             previousDistance = currentDistance;
 
+            if (firstTouch.began)
+                touch1Position = firstTouch.screenPosition;
+            if (secondTouch.began)
+                touch2Position = secondTouch.screenPosition;
+
+            float firstDisplacement = Vector2.Distance(touch1Position, firstTouch.screenPosition);
+            float secondDisplacement = Vector2.Distance(touch2Position, secondTouch.screenPosition);
+
+            float avgDisplacement = (firstDisplacement + secondDisplacement) / 2;
+            if (Mathf.Abs(avgDisplacement) >= 1)
+                selectedObject.transform.Rotate(Vector3.up * avgDisplacement * Time.deltaTime * rotationSpeed);
+
+
+            touch1Position = firstTouch.screenPosition;
+            touch2Position = secondTouch.screenPosition;
         }
         void OnPinch(float p)
         {
@@ -177,6 +202,19 @@ namespace Imisi3D
             }
             print("False");
             return false;
+        }
+        public void ToggleDelete(bool delete)
+        {
+            isDeleting= delete;
+        }
+        public void ShowPlane(bool show)
+        {
+            ARPlaneMeshVisualizer[] allVisualizers = FindObjectsByType<ARPlaneMeshVisualizer>(FindObjectsSortMode.None);
+            foreach (var item in allVisualizers)
+            {
+                item.enabled = show;
+            }
+            planeManager.enabled = show;
         }
     }
 }
