@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.XR.ARFoundation;
 namespace Imisi3D
-  {
+{
   [RequireComponent(typeof(ARCameraManager))]
   public class ArLightAdjuster : MonoBehaviour
   {
