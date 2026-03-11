@@ -40,8 +40,8 @@ namespace Imisi3D
 
         private Vector2 touchPosition;
         private float previousDistance;
-        private float previousAngle;
-
+        private bool scaling = false;
+        private bool rotating = false;
         private void Awake()
         {
             Instance = Instance ?? this;
@@ -128,22 +128,12 @@ namespace Imisi3D
             float currentDistance = Vector2.Distance(firstTouch.screenPosition, secondTouch.screenPosition); //Here you can also get the magnitude instead
 
             float pinchDelta = currentDistance - previousDistance;
-            if (pinchDelta > 0.0f)
+            if (pinchDelta != 0.0f)
             {
                 OnPinch(pinchDelta);
             }
             previousDistance = currentDistance;
 
-            float currentAngle = Mathf.Atan2(
-                firstTouch.screenPosition.y - secondTouch.screenPosition.y, 
-                firstTouch.screenPosition.x - secondTouch.screenPosition.x)
-                * Mathf.Rad2Deg;
-
-            if(previousAngle != 0)
-            {
-                float deltaAngle = Mathf.DeltaAngle(previousAngle, currentAngle);
-                OnTwist(deltaAngle);
-            }
         }
         void OnPinch(float p)
         {
@@ -156,10 +146,6 @@ namespace Imisi3D
             newScale.y = Mathf.Clamp(newScale.y, minimumObjectSize, maximumObjectSize);
             newScale.z = Mathf.Clamp(newScale.z, minimumObjectSize, maximumObjectSize);
             selectedObject.transform.localScale = Vector3.Slerp(selectedObject.transform.localScale, newScale, smoothTime / 3 * Time.deltaTime);
-        }
-        void OnTwist(float td)
-        {
-            selectedObject.transform.Rotate(Vector3.up* td * smoothTime*Time.deltaTime);
         }
         public void SetObjectToPlace(GameObject newObject)
         {
