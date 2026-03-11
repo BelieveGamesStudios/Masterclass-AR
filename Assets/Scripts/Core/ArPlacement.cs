@@ -11,7 +11,7 @@ namespace Imisi3D
     [RequireComponent(typeof(ARRaycastManager), typeof(ARPlaneManager))]
     public class ArPlacement : MonoBehaviour
     {
-        public static ArPlacement Instance;
+        public static ArPlacement Instance {get; private set;}
 
         [Header("Components")]
         private ARRaycastManager raycastManager;
@@ -150,7 +150,7 @@ namespace Imisi3D
             if (secondTouch.began)
                 touch2Position = secondTouch.screenPosition;
         
-            // Use signed horizontal delta instead of unsigned distance
+            
             float firstDelta = firstTouch.screenPosition.x - touch1Position.x;
             float secondDelta = secondTouch.screenPosition.x - touch2Position.x;
         
