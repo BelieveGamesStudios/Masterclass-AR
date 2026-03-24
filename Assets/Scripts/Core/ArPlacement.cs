@@ -163,11 +163,10 @@ namespace Imisi3D
             if (secondTouch.began)
                 touch2Position = secondTouch.screenPosition;
 
-            // --- TWIST DETECTION ---
             Vector2 prevDir = (touch1Position - touch2Position);
             Vector2 currentDir = (firstTouch.screenPosition - secondTouch.screenPosition);
 
-            // Calculate angle difference
+
             float angle = Vector2.SignedAngle(prevDir, currentDir);
 
             // Apply a small threshold to avoid jitter
@@ -176,14 +175,8 @@ namespace Imisi3D
                 OnTwist(angle);
             }
 
-            // Store positions for next frame
             touch1Position = firstTouch.screenPosition;
             touch2Position = secondTouch.screenPosition;
-
-            touch1Position = firstTouch.screenPosition;
-            touch2Position = secondTouch.screenPosition;
-            //var twist = twistInput.action.ReadValue<Vector2>();
-            //debugText.text = twist.ToString();
         }
         void OnPinch(float p)
         {
@@ -204,8 +197,6 @@ namespace Imisi3D
 
             // Rotate around Y axis (typical for AR objects)
             selectedObject.transform.Rotate(Vector3.up, -angle * rotationSpeed * Time.deltaTime, Space.World);
-
-            debugText.text = "Twisting: " + angle.ToString("F2");
         }
         public void SetObjectToPlace(GameObject newObject)
         {
@@ -234,12 +225,10 @@ namespace Imisi3D
                     Canvas c = uiItem.gameObject.GetComponentInParent<Canvas>();
                     if (c.renderMode == RenderMode.ScreenSpaceOverlay || c.renderMode == RenderMode.ScreenSpaceCamera)
                     {
-                        print("true");
                         return true;
                     }
                 }
             }
-            print("False");
             return false;
         }
         public void ToggleDelete(bool delete)
@@ -254,11 +243,6 @@ namespace Imisi3D
                 item.enabled = show;
             }
             planeManager.enabled = show;
-        }
-        public void SetMaterial(Material material)
-        {
-            if (!selectedObject) return;
-            //soon
         }
     }
 }
