@@ -169,7 +169,7 @@ namespace Imisi3D
 
             float angle = Vector2.SignedAngle(prevDir, currentDir);
 
-            // Apply a small threshold to avoid jitter
+
             if (Mathf.Abs(angle) > 0.5f)
             {
                 OnTwist(angle);
@@ -195,7 +195,7 @@ namespace Imisi3D
 
             rotating = true;
 
-            // Rotate around Y axis (typical for AR objects)
+
             selectedObject.transform.Rotate(Vector3.up, -angle * rotationSpeed * Time.deltaTime, Space.World);
         }
         public void SetObjectToPlace(GameObject newObject)
