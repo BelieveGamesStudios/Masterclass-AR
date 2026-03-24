@@ -1,17 +1,19 @@
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem.EnhancedTouch;
 using UnityEngine.XR.ARFoundation;
 using UnityEngine.XR.ARSubsystems;
 using Touch = UnityEngine.InputSystem.EnhancedTouch.Touch;
+using UnityEngine.InputSystem;
 
 namespace Imisi3D
 {
     [RequireComponent(typeof(ARRaycastManager), typeof(ARPlaneManager))]
     public class ArPlacement : MonoBehaviour
     {
-        public static ArPlacement Instance {get; private set;}
+        public static ArPlacement Instance { get; private set; }
 
         [Header("Components")]
         private ARRaycastManager raycastManager;
@@ -38,13 +40,20 @@ namespace Imisi3D
 
         [SerializeField, Range(1, 5f)] private float maximumObjectSize = 5;
 
-        [SerializeField, Range(0.01f, 5f)] private float rotationSpeed = 5;
+        [SerializeField, Range(0.01f, 15f)] private float rotationSpeed = 5;
 
         private float previousDistance;
         private Vector2 touchPosition;
         private Vector3 touch1Position;
         private Vector3 touch2Position;
         private bool isDeleting = false;
+        private bool scaling = false;
+        private bool rotating = false;
+
+
+        [Header("Debug")]
+        [SerializeField] private TextMeshProUGUI debugText;
+
         private void Awake()
         {
             Instance = Instance ?? this;
@@ -59,6 +68,7 @@ namespace Imisi3D
             objectParent = new GameObject("Object Container").transform;
             EnhancedTouchSupport.Enable();
             TouchSimulation.Enable();
+            //twistInput.action.Enable();
         }
         private void OnDisable()
         {
@@ -76,7 +86,10 @@ namespace Imisi3D
                 GetMultiTouch();
             else
             {
+                rotating = false;
+                scaling = false;
                 previousDistance = 0;
+                debugText.text = "nothing";
             }
         }
         void GetSingleTouch()
@@ -93,7 +106,7 @@ namespace Imisi3D
                         if (placedObjects.Contains(hitInfo.collider.gameObject))
                         {
                             selectedObject = hitInfo.collider.gameObject;
-                            if(isDeleting)
+                            if (isDeleting)
                             {
                                 placedObjects.Remove(selectedObject);
                                 Destroy(selectedObject);
@@ -129,44 +142,70 @@ namespace Imisi3D
         void GetMultiTouch()
         {
             if (selectedObject == null) return;
-        
+
             Touch firstTouch = Touch.activeTouches[0];
             Touch secondTouch = Touch.activeTouches[1];
-        
+
             float currentDistance = (firstTouch.screenPosition - secondTouch.screenPosition).magnitude;
-        
+
             if (firstTouch.began || secondTouch.began)
                 previousDistance = currentDistance;
-        
+
             float pinchDelta = currentDistance - previousDistance;
             if (pinchDelta != 0.0f && Mathf.Abs(pinchDelta) >= 4)
             {
                 OnPinch(pinchDelta);
             }
             previousDistance = currentDistance;
-        
+
             if (firstTouch.began)
                 touch1Position = firstTouch.screenPosition;
             if (secondTouch.began)
                 touch2Position = secondTouch.screenPosition;
-        
-            
-            float firstDelta = firstTouch.screenPosition.x - touch1Position.x;
-            float secondDelta = secondTouch.screenPosition.x - touch2Position.x;
-        
-            float avgDisplacement = (firstDelta + secondDelta) / 2;
-            if (Mathf.Abs(avgDisplacement) >= 2)
-                selectedObject.transform.Rotate(Vector3.up * avgDisplacement * Time.deltaTime * rotationSpeed);
-        
+
+            // --- TWIST DETECTION ---
+            Vector2 prevDir = (touch1Position - touch2Position);
+            Vector2 currentDir = (firstTouch.screenPosition - secondTouch.screenPosition);
+
+            // Calculate angle difference
+            float angle = Vector2.SignedAngle(prevDir, currentDir);
+
+            // Apply a small threshold to avoid jitter
+            if (Mathf.Abs(angle) > 0.5f)
+            {
+                OnTwist(angle);
+            }
+
+            // Store positions for next frame
             touch1Position = firstTouch.screenPosition;
             touch2Position = secondTouch.screenPosition;
+
+            touch1Position = firstTouch.screenPosition;
+            touch2Position = secondTouch.screenPosition;
+            //var twist = twistInput.action.ReadValue<Vector2>();
+            //debugText.text = twist.ToString();
         }
         void OnPinch(float p)
         {
+            if (rotating) return;
+
+            if (Mathf.Abs(p) > 0.1f)
+                scaling = true;
             float sizeDelta = selectedObject.transform.localScale.x + (p * scaleIncrease);
             sizeDelta = Mathf.Clamp(sizeDelta, minimumObjectSize, maximumObjectSize);
             Vector3 newScale = new Vector3(sizeDelta, sizeDelta, sizeDelta);
             selectedObject.transform.localScale = Vector3.Slerp(selectedObject.transform.localScale, newScale, smoothTime / 2 * Time.deltaTime);
+        }
+        void OnTwist(float angle)
+        {
+            if (scaling) return;
+
+            rotating = true;
+
+            // Rotate around Y axis (typical for AR objects)
+            selectedObject.transform.Rotate(Vector3.up, -angle * rotationSpeed * Time.deltaTime, Space.World);
+
+            debugText.text = "Twisting: " + angle.ToString("F2");
         }
         public void SetObjectToPlace(GameObject newObject)
         {
@@ -205,7 +244,7 @@ namespace Imisi3D
         }
         public void ToggleDelete(bool delete)
         {
-            isDeleting= delete;
+            isDeleting = delete;
         }
         public void ShowPlane(bool show)
         {
@@ -219,7 +258,7 @@ namespace Imisi3D
         public void SetMaterial(Material material)
         {
             if (!selectedObject) return;
-           //soon
+            //soon
         }
     }
 }
