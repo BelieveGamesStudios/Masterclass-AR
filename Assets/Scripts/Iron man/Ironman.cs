@@ -21,15 +21,18 @@ namespace Imisi3D.Sample.IronMan
 
 
         [Header("Animations")]
-        private Animator ironManAnimator;
+        private Animator[] characterAnimators;
         private int motionHash = Animator.StringToHash("Motion");
 
+        [SerializeField] private GameObject[] models;
+        private int modelIndex = 0;
         void Start()
         {
             bodyRb = GetComponent<Rigidbody>();
             bodyRb.useGravity = false;
             moveInput.action.actionMap.Enable();
-            ironManAnimator = GetComponent<Animator>();
+            characterAnimators = GetComponentsInChildren<Animator>();
+            SwitchModel();
         }
         private void OnDestroy()
         {
@@ -53,12 +56,24 @@ namespace Imisi3D.Sample.IronMan
                 transform.rotation = Quaternion.Euler(0, smoothTurn, 0);
             }
             Vector3 moveVector = Quaternion.Euler(0, targetRotation, 0) * Vector3.forward;
-            
-            bodyRb.linearVelocity = _input.magnitude > 0.1f || Mathf.Abs(liftValue) >= 0.1f ? new Vector3(moveVector.x * _input.magnitude, liftValue , moveVector.z * _input.magnitude) * moveSpeed * Time.deltaTime : Vector3.Lerp(bodyRb.linearVelocity, Vector3.zero, 7 * Time.deltaTime);
-            
+
+            bodyRb.linearVelocity = _input.magnitude > 0.1f || Mathf.Abs(liftValue) >= 0.1f ? new Vector3(moveVector.x * _input.magnitude, liftValue, moveVector.z * _input.magnitude) * moveSpeed * Time.deltaTime : Vector3.Lerp(bodyRb.linearVelocity, Vector3.zero, 7 * Time.deltaTime);
+
 
             float motionRatio = moveDir.magnitude >= 0.1f ? 1 : 0;
-            ironManAnimator.SetFloat(motionHash, motionRatio, 0.2f, Time.deltaTime);
+            foreach (var animators in characterAnimators)
+            {
+                animators.SetFloat(motionHash, motionRatio, 0.2f, Time.deltaTime);
+            }
+        }
+        public void SwitchModel()
+        {
+            modelIndex = (modelIndex + 1) % models.Length;
+            for (int i = 0; i < models.Length; i++)
+            {
+                models[i].SetActive(false);
+            }
+            models[modelIndex].SetActive(true);
         }
     }
 }
