@@ -27,6 +27,7 @@ namespace Imisi3D.Sample.IronMan
         void Start()
         {
             bodyRb = GetComponent<Rigidbody>();
+            bodyRb.useGravity = false;
             moveInput.action.actionMap.Enable();
             ironManAnimator = GetComponent<Animator>();
         }
@@ -44,11 +45,6 @@ namespace Imisi3D.Sample.IronMan
             Vector2 _input = moveInput.action.ReadValue<Vector2>();
             float liftValue = liftInput.action.ReadValue<float>();
 
-            Vector3 hoverForce = bodyRb.mass * -Vector3.up * Physics.gravity.y;
-
-            bodyRb.AddForce(hoverForce + new Vector3(0,liftValue * liftForce * Time.deltaTime,0), ForceMode.Force);
-
-            Vector3 upwardVector = Vector3.up * liftForce * liftValue * Time.deltaTime;
             Vector3 moveDir = new Vector3(_input.x, 0, _input.y).normalized;
             if (moveDir.magnitude >= 0.1f)
             {
@@ -57,7 +53,7 @@ namespace Imisi3D.Sample.IronMan
                 transform.rotation = Quaternion.Euler(0, smoothTurn, 0);
             }
             Vector3 moveVector = Quaternion.Euler(0, targetRotation, 0) * Vector3.forward;
-            bodyRb.linearVelocity = _input.magnitude > 0.1f ? new Vector3(moveVector.x, 0, moveVector.z) * moveSpeed*Time.deltaTime : Vector3.Lerp(bodyRb.linearVelocity, Vector3.zero, 7 * Time.deltaTime);
+            bodyRb.linearVelocity = _input.magnitude > 0.1f ? new Vector3(moveVector.x, liftValue, moveVector.z) * moveSpeed*Time.deltaTime : Vector3.Lerp(bodyRb.linearVelocity, Vector3.zero, 7 * Time.deltaTime);
 
             float motionRatio = moveDir.magnitude >= 0.1f ? 1 : 0;
             ironManAnimator.SetFloat(motionHash, motionRatio, 0.2f, Time.deltaTime);
