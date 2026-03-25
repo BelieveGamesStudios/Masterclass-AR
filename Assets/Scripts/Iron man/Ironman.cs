@@ -53,9 +53,11 @@ namespace Imisi3D.Sample.IronMan
                 transform.rotation = Quaternion.Euler(0, smoothTurn, 0);
             }
             Vector3 moveVector = Quaternion.Euler(0, targetRotation, 0) * Vector3.forward;
-            bodyRb.linearVelocity = _input.magnitude > 0.1f || Mathf.Max(liftValue) >= 0.1f ? new Vector3(moveVector.x, liftValue * liftForce * Time.deltaTime, moveVector.z) * moveSpeed * Time.deltaTime : Vector3.Lerp(bodyRb.linearVelocity, Vector3.zero, 7 * Time.deltaTime);
+            
+            bodyRb.linearVelocity = _input.magnitude > 0.1f || Mathf.Abs(liftValue) >= 0.1f ? new Vector3(moveVector.x * _input.magnitude, liftValue , moveVector.z * _input.magnitude) * moveSpeed * Time.deltaTime : Vector3.Lerp(bodyRb.linearVelocity, Vector3.zero, 7 * Time.deltaTime);
+            
 
-            float motionRatio = moveDir.magnitude >= 0.1f || Mathf.Abs(liftValue) >= 0.1f ? 1 : 0;
+            float motionRatio = moveDir.magnitude >= 0.1f ? 1 : 0;
             ironManAnimator.SetFloat(motionHash, motionRatio, 0.2f, Time.deltaTime);
         }
     }
