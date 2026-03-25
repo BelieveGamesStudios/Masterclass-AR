@@ -2017,8 +2017,8 @@ MonoBehaviour:
       m_SingletonActionBindings: []
       m_Flags: 0
     m_Reference: {fileID: 7402090138965896828, guid: 052faaac586de48259a63d0c4782560b, type: 3}
-  liftForce: 400
-  moveSpeed: 10
+  liftForce: 100
+  moveSpeed: 100
 --- !u!54 &5866666020901519982
 Rigidbody:
   m_ObjectHideFlags: 0
