@@ -237,11 +237,7 @@ namespace Imisi3D
         }
         public void ShowPlane(bool show)
         {
-            ARPlaneMeshVisualizer[] allVisualizers = FindObjectsByType<ARPlaneMeshVisualizer>(FindObjectsSortMode.None);
-            foreach (var item in allVisualizers)
-            {
-                item.enabled = show;
-            }
+            planeManager.SetTrackablesActive(show);
             planeManager.enabled = show;
         }
     }
